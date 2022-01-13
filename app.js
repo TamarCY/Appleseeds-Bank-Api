@@ -1,5 +1,5 @@
 const express = require("express");
-const { loadUsers } = require("./utils.js");
+const { loadUsers, deleteUser, addUser } = require("./utils.js");
 
 const app = express();
 
@@ -51,9 +51,23 @@ app.put("/users/:id", (req, res) => {
   //transfer
 });
 
-app.post("/users", (req, res) => {});
 
-app.delete("/users", (req, res) => {});
+
+app.post("/users", (req, res) => {
+    try{
+        res.status(201).send(addUser(req.body))
+    } catch (e) {
+        res.status(400).send(e)
+    }
+});
+
+app.delete("/users", (req, res) => {
+    try {
+        res.status(200).send(deleteUser(req.body.id))
+    } catch (e) {
+        res.status(400).send(e)
+    }
+});
 
 app.listen(PORT, () => {
   console.log(`listening on port ${PORT}`);
