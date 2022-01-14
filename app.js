@@ -1,5 +1,5 @@
 const express = require("express");
-const { loadUsers, deleteUser, addUser } = require("./utils.js");
+const { loadUsers, deleteUser, addUser, updateUser } = require("./utils.js");
 
 const app = express();
 
@@ -45,6 +45,11 @@ app.get("/users/:id", (req, res) => {
 // })
 
 app.put("/users/:id", (req, res) => {
+    try{
+        res.status(200).send(updateUser(req.body, req.params.id));
+    } catch (e) {
+        res.status(400).send(e)
+    }
   //withdraw
   //deposit
   //update credit

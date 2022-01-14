@@ -1,4 +1,5 @@
 const fs = require("fs");
+const { threadId } = require("worker_threads");
 
 const loadUsers = (id = undefined) => {
   try {
@@ -33,9 +34,9 @@ const checkUserData = (user) => {
   }
 };
 
-const creatUserObject = (id, cash=0, credit=0) => {
- return {id, cash, credit}
-}
+const creatUserObject = (id, cash = 0, credit = 0) => {
+  return { id, cash, credit };
+};
 
 const setUsers = (users) => {
   try {
@@ -76,4 +77,54 @@ const deleteUser = (id) => {
   }
 };
 
-module.exports = { loadUsers, deleteUser, addUser };
+const isEnoughCredit = (user, amount) => {
+  //   Why cant i do  (user.cash + user.credit)  >= amount? true : false
+  const balance = user.credit + user.cash;
+  return balance >= amount ? true : false;
+};
+
+const updateWithdraw = (usersArray, id, amount) => {
+     for (const user of usersArray){
+         if(user.id === +id){
+             user.cash = user.cash - amount;
+             console.log(`user ${id} updated cash is ${user.cash}`);
+             return usersArray;
+         }
+     }
+}
+
+const withdraw = (usersArray, user, transactionObject, id) => {
+    if(!isEnoughCredit(user, transactionObject.amount)){
+        throw (`There amount wanted is more then the balance: ${transactionObject.amount} cash:${user.cash}, credit:${user.credit}`)
+    } else {
+      const updatedArray = updateWithdraw(usersArray, id, transactionObject.amount);
+      setUsers(updatedArray);
+      return (updatedArray)
+    }
+}
+
+const updateUser = (transactionObject, id) => {
+  if (!id) {
+    throw "Invalid input - no ID entered";
+  }
+  const user = loadUsers(id);
+  const usersArray = loadUsers();
+  switch (transactionObject.transaction) {
+    case "withdraw":
+       return  withdraw (usersArray, user, transactionObject, id);
+    case "deposit":
+      console.log("deposit");
+      break;
+    case "updateCredit":
+      console.log("update");
+      break;
+    case "transfer":
+      console.log("transfer");
+      break;
+    default:
+      throw "Invalid transaction";
+  }
+  return user;
+};
+
+module.exports = { loadUsers, deleteUser, addUser, updateUser };
