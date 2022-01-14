@@ -118,6 +118,22 @@ const deposit = (usersArray, id, amount) => {
     // setUsers(updateUser(usersArray, id, amount, "deposit"))
 }
 
+const updateCredit = (newCredit,  usersArray, id) => {
+    if (newCredit < 0){
+        throw "Invalid credit data (less then 0)"
+    } else {
+    for (const user of usersArray){
+        if(user.id === +id){
+            user.credit = newCredit;
+            console.log("credit after" +user.credit);
+            console.log(`user ${id} updated credit is ${user.credit}`);
+            return usersArray;
+        }
+    }
+}
+}
+// TODO: add a function that find and update one object in an array
+
 const updateTransaction = (transactionObject, id) => {
   if (!id) {
     throw "Invalid input - no ID entered";
@@ -128,10 +144,9 @@ const updateTransaction = (transactionObject, id) => {
     case "withdraw":
        return  withdraw (usersArray, user, transactionObject, id);
     case "deposit":
-      return  deposit (usersArray, id, transactionObject.amount)
+      return  deposit (usersArray, id, transactionObject.amount);
     case "updateCredit":
-      console.log("update");
-      break;
+      return updateCredit (transactionObject.newCredit,  usersArray, id);
     case "transfer":
       console.log("transfer");
       break;
