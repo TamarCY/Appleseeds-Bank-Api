@@ -41,19 +41,20 @@ app.get("/users/:id", (req, res) => {
 // })
 
 // app.put("/users/transfer/:id", (req, res)=>{
-
+//     try{
+//         res.status(200).send("transfer")
+//     } catch(e){
+//         res.status(400).send(e)
+//     }
 // })
 
 app.put("/users/:id", (req, res) => {
+  console.log(req.body);
     try{
         res.status(200).send(updateTransaction(req.body, req.params.id));
     } catch (e) {
         res.status(400).send(e)
     }
-  //withdraw
-  //deposit
-  //update credit
-  //transfer
 });
 
 

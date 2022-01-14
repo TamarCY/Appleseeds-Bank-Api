@@ -1,5 +1,8 @@
+const { verify } = require("crypto");
 const fs = require("fs");
 const { threadId } = require("worker_threads");
+
+// TODO: in this project, what input do we need to verify?
 
 const loadUsers = (id = undefined) => {
   try {
@@ -53,7 +56,6 @@ const addUser = (user) => {
     const users = loadUsers();
     checkIfUserExists(user, users);
     const newUser = creatUserObject(user.id, user.cash, user.credit);
-    console.log(newUser);
     users.push(newUser);
     setUsers(users);
     return loadUsers();
@@ -84,55 +86,61 @@ const isEnoughCredit = (user, amount) => {
 };
 
 const updateUser = (usersArray, id, amount, action) => {
-    console.log(action);
-    amount = action==="withdraw"? -amount : amount
-    console.log(amount);
-     for (const user of usersArray){
-         if(user.id === +id){
-             console.log("cash before" +user.cash);
-             user.cash = user.cash + amount;
-             console.log("cash after" +user.cash);
-
-             console.log(`user ${id} updated cash is ${user.cash}`);
-             return usersArray;
-         }
-     }
-}
-
-const withdraw = (usersArray, user, transactionObject, id) => {
-    if(!isEnoughCredit(user, transactionObject.amount)){
-        throw (`There amount wanted is more then the balance: ${transactionObject.amount} cash:${user.cash}, credit:${user.credit}`)
-    } else {
-      const updatedArray = updateUser(usersArray, id, transactionObject.amount, "withdraw");
-      setUsers(updatedArray);
-      return loadUsers();
-      //TODO: what do I need to return and from where
+  amount = action === "withdraw" ? -amount : amount;
+  console.log(action);
+  for (const user of usersArray) {
+    if (user.id === +id) {
+      user.cash = user.cash + amount;
+      return usersArray;
     }
-}
+  }
+};
 
-const deposit = (usersArray, id, amount) => {
-    const updatedArray =  updateUser(usersArray, id, amount, "deposit");
+const withdraw = (usersArray, user, id, amount) => {
+  if (!isEnoughCredit(user, amount)) {
+    throw `There amount wanted is more then the balance: ${amount} cash:${user.cash}, credit:${user.credit}`;
+  } else {
+    const updatedArray = updateUser(usersArray, id, amount, "withdraw");
     setUsers(updatedArray);
     return loadUsers();
-    // TODO: whats better 2 lines or 1:
-    // setUsers(updateUser(usersArray, id, amount, "deposit"))
-}
+    //TODO: what do I need to return and from where
+  }
+};
 
-const updateCredit = (newCredit,  usersArray, id) => {
-    if (newCredit < 0){
-        throw "Invalid credit data (less then 0)"
-    } else {
-    for (const user of usersArray){
-        if(user.id === +id){
-            user.credit = newCredit;
-            console.log("credit after" +user.credit);
-            console.log(`user ${id} updated credit is ${user.credit}`);
-            return usersArray;
-        }
+const deposit = (usersArray, id, amount) => {
+  const updatedArray = updateUser(usersArray, id, amount, "deposit");
+  setUsers(updatedArray);
+  return loadUsers();
+  // TODO: whats better 2 lines or 1:
+  // setUsers(updateUser(usersArray, id, amount, "deposit"))
+};
+
+const updateCredit = (newCredit, usersArray, id) => {
+  if (newCredit < 0) {
+    throw "Invalid credit data (less then 0)";
+  } else {
+    for (const user of usersArray) {
+      if (user.id === +id) {
+        user.credit = newCredit;
+        break;
+      }
     }
-}
-}
-// TODO: add a function that find and update one object in an array
+    setUsers(usersArray);
+    return loadUsers();
+  }
+};
+// TODO: add a function that find and update one object in an array????
+
+const transfer = (givingId, receivingId, amount, user, usersArray) => {
+  if (!receivingId) {
+    throw "Invalid input - no receiving Id entered";
+  }
+  if (amount < 0) {
+    throw "Invalid input - amount is less then 0";
+  }
+  withdraw(usersArray, user, givingId, amount);
+  return deposit(usersArray, receivingId, amount);
+};
 
 const updateTransaction = (transactionObject, id) => {
   if (!id) {
@@ -142,18 +150,28 @@ const updateTransaction = (transactionObject, id) => {
   const usersArray = loadUsers();
   switch (transactionObject.transaction) {
     case "withdraw":
-       return  withdraw (usersArray, user, transactionObject, id);
+      return withdraw(usersArray, user, transactionObject.amount, id);
     case "deposit":
-      return  deposit (usersArray, id, transactionObject.amount);
+      return deposit(usersArray, id, transactionObject.amount);
     case "updateCredit":
-      return updateCredit (transactionObject.newCredit,  usersArray, id);
+      return updateCredit(transactionObject.newCredit, usersArray, id);
     case "transfer":
-      console.log("transfer");
-      break;
+      return transfer(
+        id,
+        transactionObject.receivingId,
+        transactionObject.amount,
+        user,
+        usersArray
+      );
     default:
       throw "Invalid transaction";
   }
-  return user;
 };
 
-module.exports = { loadUsers, deleteUser, addUser, updateTransaction };
+module.exports = {
+  loadUsers,
+  deleteUser,
+  addUser,
+  updateTransaction,
+  transfer
+};
