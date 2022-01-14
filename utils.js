@@ -83,10 +83,16 @@ const isEnoughCredit = (user, amount) => {
   return balance >= amount ? true : false;
 };
 
-const updateWithdraw = (usersArray, id, amount) => {
+const updateUser = (usersArray, id, amount, action) => {
+    console.log(action);
+    amount = action==="withdraw"? -amount : amount
+    console.log(amount);
      for (const user of usersArray){
          if(user.id === +id){
-             user.cash = user.cash - amount;
+             console.log("cash before" +user.cash);
+             user.cash = user.cash + amount;
+             console.log("cash after" +user.cash);
+
              console.log(`user ${id} updated cash is ${user.cash}`);
              return usersArray;
          }
@@ -97,13 +103,22 @@ const withdraw = (usersArray, user, transactionObject, id) => {
     if(!isEnoughCredit(user, transactionObject.amount)){
         throw (`There amount wanted is more then the balance: ${transactionObject.amount} cash:${user.cash}, credit:${user.credit}`)
     } else {
-      const updatedArray = updateWithdraw(usersArray, id, transactionObject.amount);
+      const updatedArray = updateUser(usersArray, id, transactionObject.amount, "withdraw");
       setUsers(updatedArray);
-      return (updatedArray)
+      return loadUsers();
+      //TODO: what do I need to return and from where
     }
 }
 
-const updateUser = (transactionObject, id) => {
+const deposit = (usersArray, id, amount) => {
+    const updatedArray =  updateUser(usersArray, id, amount, "deposit");
+    setUsers(updatedArray);
+    return loadUsers();
+    // TODO: whats better 2 lines or 1:
+    // setUsers(updateUser(usersArray, id, amount, "deposit"))
+}
+
+const updateTransaction = (transactionObject, id) => {
   if (!id) {
     throw "Invalid input - no ID entered";
   }
@@ -113,8 +128,7 @@ const updateUser = (transactionObject, id) => {
     case "withdraw":
        return  withdraw (usersArray, user, transactionObject, id);
     case "deposit":
-      console.log("deposit");
-      break;
+      return  deposit (usersArray, id, transactionObject.amount)
     case "updateCredit":
       console.log("update");
       break;
@@ -127,4 +141,4 @@ const updateUser = (transactionObject, id) => {
   return user;
 };
 
-module.exports = { loadUsers, deleteUser, addUser, updateUser };
+module.exports = { loadUsers, deleteUser, addUser, updateTransaction };
