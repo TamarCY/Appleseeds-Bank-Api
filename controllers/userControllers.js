@@ -26,18 +26,27 @@ const getUser = (req, res) => {
 };
 
 const deleteUser = (req, res) => {
+  console.log("delete");
   try {
-    res.status(200).send(deleteUser(req.body.id));
+    res.status(200).send(deleteUserFunction(req.body.id));
   } catch (e) {
     res.status(400).send(e);
   }
 };
 
 const postUser = (req, res) => {
-  console.log("ping");
+  try {
+    res.status(201).send(addUser(req.body));
+  } catch (e) {
+    res.status(400).send(e);
+  }
 };
 const putUsers = (req, res) => {
-  console.log("ping");
+      try{
+        res.status(200).send(updateTransaction(req.body, req.params.id));
+    } catch (e) {
+        res.status(400).send(e)
+    }
 };
 
 module.exports = { getUser, getUsers, postUser, putUsers, deleteUser };
