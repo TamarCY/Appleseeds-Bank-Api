@@ -5,11 +5,13 @@ const { threadId } = require("worker_threads");
 // TODO: in this project, what input do we need to verify?
 
 const loadUsers = (id = undefined) => {
+  console.log("load");
   try {
-    const usersBuffer = fs.readFileSync("./users.json");
+    const usersBuffer = fs.readFileSync("./json/users.json");
     const userJSON = usersBuffer.toString();
     const users = JSON.parse(userJSON);
     if (!id) {
+      console.log(`no id id = ${id}`);
       return users;
     } else {
       return users.find((user) => user.id === +id);
@@ -44,7 +46,7 @@ const creatUserObject = (id, cash = 0, credit = 0) => {
 const setUsers = (users) => {
   try {
     const userJSON = JSON.stringify(users);
-    fs.writeFileSync("./users.json", userJSON);
+    fs.writeFileSync("../json/users.json", userJSON);
   } catch (e) {
     return e;
   }
@@ -64,7 +66,7 @@ const addUser = (user) => {
   }
 };
 
-const deleteUser = (id) => {
+const deleteUserFunction = (id) => {
   try {
     const users = loadUsers();
     const filteredArr = users.filter((user) => user.id !== id);
@@ -170,7 +172,7 @@ const updateTransaction = (transactionObject, id) => {
 
 module.exports = {
   loadUsers,
-  deleteUser,
+  deleteUserFunction,
   addUser,
   updateTransaction,
   transfer
