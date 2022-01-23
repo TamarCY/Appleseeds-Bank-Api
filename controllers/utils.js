@@ -1,12 +1,11 @@
-const { verify } = require("crypto");
 const fs = require("fs");
-const { threadId } = require("worker_threads");
 
 // TODO: in this project, what input do we need to verify?
 
 const loadUsers = (id = undefined) => {
   try {
-    const usersBuffer = fs.readFileSync("./users.json");
+    const usersBuffer = fs.readFileSync("./json/users.json");
+    //TODO: WHY "./json/users.json" AND NOT "../json/users.json"
     const userJSON = usersBuffer.toString();
     const users = JSON.parse(userJSON);
     if (!id) {
@@ -44,7 +43,7 @@ const creatUserObject = (id, cash = 0, credit = 0) => {
 const setUsers = (users) => {
   try {
     const userJSON = JSON.stringify(users);
-    fs.writeFileSync("./users.json", userJSON);
+    fs.writeFileSync("./json/users.json", userJSON);
   } catch (e) {
     return e;
   }
@@ -66,7 +65,7 @@ const addUser = (user) => {
   }
 };
 
-const deleteUser = (id) => {
+const deleteUserFunction = (id) => {
   try {
     const users = loadUsers();
     const filteredArr = users.filter((user) => user.id !== id);
@@ -89,13 +88,13 @@ const isEnoughCredit = (user, amount) => {
 
 const updateUser = (usersArray, id, amount, action) => {
   amount = action === "withdraw" ? -amount : amount;
-  console.log(action);
   for (const user of usersArray) {
     if (user.id === +id) {
       user.cash = user.cash + amount;
       return usersArray;
     }
   }
+  console.log("after"+ action + usersArray);
 };
 
 const withdraw = (usersArray, user, id, amount) => {
@@ -103,7 +102,7 @@ const withdraw = (usersArray, user, id, amount) => {
     throw `There amount wanted is more then the balance: ${amount} cash:${user.cash}, credit:${user.credit}`;
   } else {
     const updatedArray = updateUser(usersArray, id, amount, "withdraw");
-    setUsers(updatedArray);
+    setUsers(updatedArray)
     return loadUsers();
     //TODO: what do I need to return and from where
   }
@@ -144,24 +143,24 @@ const transfer = (givingId, receivingId, amount, user, usersArray) => {
   return deposit(usersArray, receivingId, amount);
 };
 
-const updateTransaction = (transactionObject, id) => {
+const updateTransaction = ({transaction, amount, newCredit, receivingId}, id) => {
   if (!id) {
     throw "Invalid input - no ID entered";
   }
   const user = loadUsers(id);
   const usersArray = loadUsers();
-  switch (transactionObject.transaction) {
+  switch (transaction) {
     case "withdraw":
-      return withdraw(usersArray, user, transactionObject.amount, id);
+      return withdraw(usersArray, user, id, amount);
     case "deposit":
-      return deposit(usersArray, id, transactionObject.amount);
+      return deposit(usersArray, id, amount);
     case "updateCredit":
-      return updateCredit(transactionObject.newCredit, usersArray, id);
+      return updateCredit(newCredit, usersArray, id);
     case "transfer":
       return transfer(
         id,
-        transactionObject.receivingId,
-        transactionObject.amount,
+        receivingId,
+        amount,
         user,
         usersArray
       );
@@ -172,7 +171,7 @@ const updateTransaction = (transactionObject, id) => {
 
 module.exports = {
   loadUsers,
-  deleteUser,
+  deleteUserFunction,
   addUser,
   updateTransaction,
   transfer
