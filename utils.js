@@ -58,7 +58,9 @@ const addUser = (user) => {
     const newUser = creatUserObject(user.id, user.cash, user.credit);
     users.push(newUser);
     setUsers(users);
-    return loadUsers();
+    // return loadUsers();
+    return newUser
+    // TODO: what do I need to return 
   } catch (e) {
     return e;
   }
